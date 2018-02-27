@@ -8,3 +8,7 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     return render_template('pages/index.html')
+
+@app.route('/suggestions')
+def suggestions():
+    return render_template('pages/suggestions.html')
