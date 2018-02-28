@@ -1,6 +1,6 @@
-from flask_wft import form
+from flask_wtf import Form
 from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired, Email
+from wtforms.validators import DataRequired, Email, Regexp
 
 class IndentifyUserForm(Form):
 	email = StringField("email",validators=[

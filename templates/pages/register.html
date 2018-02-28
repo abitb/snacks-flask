@@ -1,0 +1,13 @@
+{% extends "/layouts/main.html" %}
+
+{% block navigation %}
+{% endblock %}
+
+{% block content %}
+<form method="post" class="form">
+  {{ form.email(class_ = 'form-control', placeholder = form.email.label.text, required = true) }}
+  <p class="pull-left"><a href="{{ url_for('register') }}">Login</a></p>
+  <input type="submit" value="Register" class="btn btn-primary btn-lg btn-block"  disabled>
+  <p>You must add database as well as Flask-Login to enable user management. See the <a href="http://www.realpython.com">Real Python</a> course for more info!</p>
+</form>
+{% endblock %}

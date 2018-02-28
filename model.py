@@ -1,7 +1,7 @@
 from datetime import date
-from dbConnection import Database
+from DBConnection import Database
 
-db_file = "snacks.db"
+# Default database location
 
 def create_table():
     create_query = '''
@@ -11,61 +11,70 @@ def create_table():
             user_email  TEXT,
             voted_snack TEXT
         );'''
-    with Database(db_file) as db:
+    with Database(Models.DB_FILE) as db:
         db.cursor.execute(create_query)
 
-def register_votes(votes, email):
-    """
-    Insert votes into VOTES table
-    :param votes: list of voted_snack
-    :param email: string email
-    """
-    query_string = "INSERT INTO tb_votes(vote_date, user_email, voted_snack) VALUES(?,?,?)"
-    # Dates saved are in year-mm-dd format
-    vote_date = date.today().strftime("%Y-%m-%d")
-    with Database(db_file) as db:
-        for v in votes:
-            db.cursor.execute(query_string, (vote_date, email, v))
 
-def get_tally(year, month):
-    """
-    get tally of votes for a specific month
-    :param year: integer year eg. 2018
-    :param month: integer month eg. 2
-    :returns: list of tuples, for the snacks vote tally
-    """
-    # Convert the saved dates to month format year-mm
-    query_string = '''
-        SELECT voted_snack, COUNT(vote_id) as tally
-        FROM tb_votes
-        WHERE strftime('%Y-%m', vote_date) = :month GROUP BY (voted_snack);
-    '''
-    vote_month = "{}-{:02d}".format(2018, 2)
+class Models:
+    DB_FILE = "snacks.db"
 
-    with Database(db_file) as db:
-        db.cursor.execute(query_string, {"month": vote_month})
-        rows = db.cursor.fetchall()
-    return rows
 
-def get_allowed_votes(email):
-    """
-    Get allowed votes for a specific user for the current month
-    :param email: string email
-    :returns: int allowed votes left for this user
-    """
-    max_vote_per_month = 3
-    # Month format year-mm
-    query_string = '''
-        SELECT COUNT(voted_snack) as voted_times
-        FROM tb_votes
-        WHERE strftime('%Y-%m', vote_date) = :month AND user_email = :email
-    '''
-    current_month = date.today().strftime("%Y-%m")
+class Votes(Models):
 
-    with Database(db_file) as db:
-        db.cursor.execute(query_string, {"month": current_month, "email": email})
-        rows = db.cursor.fetchone()
+    def __init__(self, email):
+        self.user_email = email
 
-    voted_times = rows[0]
-    allowed_votes = max(0, max_vote_per_month - voted_times)
-    return allowed_votes
+    def register_votes(votes):
+        """
+        Insert votes into VOTES table
+        :param votes: list of voted_snack
+        """
+        query_string = "INSERT INTO tb_votes(vote_date, user_email, voted_snack) VALUES(?,?,?)"
+        # Dates saved are in year-mm-dd format
+        vote_date = date.today().strftime("%Y-%m-%d")
+        with Database(Models.DB_FILE) as db:
+            for v in votes:
+                db.cursor.execute(query_string, (vote_date, self.user_email, v))
+
+    @staticmethod
+    def get_tally(year, month):
+        """
+        get tally of votes for a specific month
+        :param year: integer year eg. 2018
+        :param month: integer month eg. 2
+        :returns: list of tuples, for the snacks vote tally
+        """
+        # Convert the saved dates to month format year-mm
+        query_string = '''
+            SELECT voted_snack, COUNT(vote_id) as tally
+            FROM tb_votes
+            WHERE strftime('%Y-%m', vote_date) = :month GROUP BY (voted_snack);
+        '''
+        vote_month = "{}-{:02d}".format(2018, 2)
+
+        with Database(Models.DB_FILE) as db:
+            db.cursor.execute(query_string, {"month": vote_month})
+            rows = db.cursor.fetchall()
+        return rows
+
+    def get_allowed_votes():
+        """
+        Get allowed votes for a specific user for the current month
+        :returns: int allowed votes left for this user
+        """
+        max_vote_per_month = 3
+        # Month format year-mm
+        query_string = '''
+            SELECT COUNT(voted_snack) as voted_times
+            FROM tb_votes
+            WHERE strftime('%Y-%m', vote_date) = :month AND user_email = :email
+        '''
+        current_month = date.today().strftime("%Y-%m")
+
+        with Database(Models.DB_FILE) as db:
+            db.cursor.execute(query_string, {"month": current_month, "email": self.user_email})
+            rows = db.cursor.fetchone()
+
+        voted_times = rows[0]
+        allowed_votes = max(0, max_vote_per_month - voted_times)
+        return allowed_votes

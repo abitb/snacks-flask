@@ -28,13 +28,13 @@
     <link rel="stylesheet" media="screen, projection" href="/static/assets/styles/modern.css" />
 </head>
 <body>
-    {% block navigation %}
     <div class="masthead" role="banner">
         <div class="masthead-hd">
             <h1 class="hdg hdg_1 mix-hdg_extraBold"><a href="index.html">SnaFoo</a>
             </h1>
             <p class="masthead-hd-sub">Nerdery Snack Food Ordering System</p>
         </div>
+        {% block navigation %}
         <div class="masthead-nav" role="navigation">
             <ul>
                 <li><a href="{{ url_for('index') }}">Voting</a>
@@ -45,8 +45,8 @@
                 </li>
             </ul>
         </div>
+        {% endblock %}
     </div>
-    {% endblock %}
 {% block content %}
 {% endblock %}
 </body>
