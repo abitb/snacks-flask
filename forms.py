@@ -1,11 +1,15 @@
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, Email, Regexp
+from re import IGNORECASE
+class IndentifyUserForm(FlaskForm):
 
-class IndentifyUserForm(Form):
-	email = StringField("email",validators=[
-		DataRequired("Please enter your nerdery email."),
-		Email("Please enter your nerdery email."),
-		Regexp("@nerdery\.com$", message="Please enter your nerdery email.")
-		])
+	email = StringField(
+		"email",
+		validators=[
+			DataRequired("Please enter your nerdery email."),
+			Email("Please enter a valid email."),
+			Regexp("\w.*@nerdery\.com$", flags=IGNORECASE, message="Please enter your Nerdery email.")
+	])
+
 	submit = SubmitField("Submit")

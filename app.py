@@ -71,10 +71,25 @@ def register():
     if "email" in session:
         return redirect(url_for("index"))
 
-    if request.method == "POST":
-        pass
-
+    # Create form object to display, and use
     form = IndentifyUserForm(request.form)
+
+    # When user submmited email
+    if request.method == "POST":
+        # If input is validate, set session, and redirect to vote page
+        if form.validate():
+            user_email = form.email.data.lower()
+            session["email"] = user_email
+            return redirect(url_for("index"))
+
     return render_template("pages/register.html", form=form)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
 
 
