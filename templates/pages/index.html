@@ -43,54 +43,43 @@
                     <h2 class="hdg hdg_2 mix-hdg_centered ">Snacks suggested this month</h2>
                 </div>
                 <div class="shelf shelf_5">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Snack Food</th>
-                                <th scope="col">Current Votes</th>
-                                <th scope="col">VOTE</th>
-                                <th scope="col">Last Date Purchased</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Donuts</td>
-                                <td>26</td>
-                                <td>
-                                    <button class="btn btn_clear"><i class="icon-check icon-check_voted"></i>
-                                    </button>
-                                </td>
-                                <td>12/1/14</td>
-                            </tr>
-                            <tr>
-                                <td>Spam</td>
-                                <td>10</td>
-                                <td>
-                                    <button class="btn btn_clear"><i class="icon-check icon-check_noVote"></i>
-                                    </button>
-                                </td>
-                                <td>12/1/14</td>
-                            </tr>
-                            <tr>
-                                <td>Buckets of M&amp;M's</td>
-                                <td>38</td>
-                                <td>
-                                    <button class="btn btn_clear"><i class="icon-check icon-check_noVote"></i>
-                                    </button>
-                                </td>
-                                <td>12/1/14</td>
-                            </tr>
-                            <tr>
-                                <td>Pistachios</td>
-                                <td>5</td>
-                                <td>
-                                    <button class="btn btn_clear"><i class="icon-check icon-check_noVote"></i>
-                                    </button>
-                                </td>
-                                <td>10/1/14</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <form method="POST" action="{{ url_for("index") }}" class="form">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Snack Food</th>
+                                    <th scope="col">Current Votes</th>
+                                    <th scope="col">VOTE</th>
+                                    <th scope="col">Last Date Purchased</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for field in form %}
+                                {% if field.type == "BooleanField" %}
+                                <tr>
+                                    <td>{{ field.label }} {{ field.label.text in ranked_snacks }}</td>
+                                    <td>
+                                    {% if field.label.text in ranked_snacks %}
+                                        {{ snack_tally[field.label.text] }}
+                                    {% else %}
+                                    0
+                                    {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn_clear"><i class="icon-check icon-check_voted"></i>
+                                        </button>
+                                        {{ field() }}
+                                    </td>
+                                    <td>{{ optional_snacks[field.label.text] }}</td>
+                                </tr>
+                                {% elif field.type == "CSRFTokenField" %}
+                                    {{ field() }}
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <input type="submit" value="Vote">
+                    </form>
                 </div>
             </div>
         </div>

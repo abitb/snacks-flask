@@ -24,7 +24,7 @@ class Votes(Models):
     def __init__(self, email):
         self.user_email = email
 
-    def register_votes(votes):
+    def register_votes(self, votes):
         """
         Insert votes into VOTES table
         :param votes: list of voted_snack
@@ -42,7 +42,7 @@ class Votes(Models):
         get tally of votes for a specific month
         :param year: integer year eg. 2018
         :param month: integer month eg. 2
-        :returns: list of tuples, for the snacks vote tally
+        :returns: dictionary for the snacks vote tally {"snack name": 4, ...}
         """
         # Convert the saved dates to month format year-mm
         query_string = '''
@@ -55,9 +55,9 @@ class Votes(Models):
         with Database(Models.DB_FILE) as db:
             db.cursor.execute(query_string, {"month": vote_month})
             rows = db.cursor.fetchall()
-        return rows
+        return dict(rows)
 
-    def get_allowed_votes():
+    def get_allowed_votes(self):
         """
         Get allowed votes for a specific user for the current month
         :returns: int allowed votes left for this user
