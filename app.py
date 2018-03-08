@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 
 from config import config
 import webservice_client
@@ -23,59 +23,70 @@ def index():
     if "email" not in session:
         return redirect(url_for("register"))
 
-    # Initialize information to be displayed in template
+    # Initialize model for this user
     snacks = {}
-
     print session["email"]
     model_vote = model.Votes(session["email"])
-    allowed_vote = model_vote.get_allowed_votes()
+    # The allowed vote count left for user is need for both GET and POST
+    snacks["allowed_vote"] = model_vote.get_allowed_votes()
 
     # When user request to view the page, get data to display.
     if request.method == "GET":
         # resp = webservice_client.get_snacks_from_web_service()
-
-        Test1.test_attr += 1
-        c = Test1()
-        print "get ",
-        print Test1.test_attr
-
         # if resp:
         #     always_purchased, optional_snacks = webservice_client.separate_optional_snacks(resp)
-
-    today = date.today()
-    snacks["snack_tally"] = model_vote.get_tally(today.month, today.year)
-    snacks["snack_tally"] = {"Donuts":3, "Spam":2}
-    snacks["ranked_snacks"] = snacks["snack_tally"].keys()
-
-    optional_snacks = [
-        {"id": 2000, "lastPurchaseDate": "12/1/2014", "name": "Donuts", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
-        {"id": 2001, "lastPurchaseDate": "12/1/2014", "name": "Spam", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
-        {"id": 2002, "lastPurchaseDate": "12/1/2014", "name": "Buckets of M&M's", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
-        {"id": 2002, "lastPurchaseDate": "10/1/2014", "name": "Pistachios", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
-    ]
-
-    # Dynamically add fields (class attribute of custom form) using optional snacks from webservice
-    # Form fields correspond to snacks in optional_snacks
-    # todo: has dynamic flag
-    VoteSnackForm.add_dynamic_fields(optional_snacks)
-    # Have super constructor register fields
-    form = VoteSnackForm()
-
-    snacks["optional_snacks"] = {s["name"]: s["lastPurchaseDate"] for s in optional_snacks}
-
-    # If web service is down, set error.
+    # When web service is down, set error.
         # else:
         #     snacks["error":"Sorry, we can't get snack information from OCD right now." ]
         #     always_purchased, optional_snacks = ([],[])
+
+        # Initialize information to be displayed in template
+        optional_snacks = [
+            {"id": 2000, "lastPurchaseDate": "12/1/2014", "name": "Donuts", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
+            {"id": 2001, "lastPurchaseDate": "12/1/2014", "name": "Spam", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
+            {"id": 2002, "lastPurchaseDate": "12/1/2014", "name": "Buckets of M&M's", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
+            {"id": 2002, "lastPurchaseDate": "10/1/2014", "name": "Pistachios", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
+        ]
+
+        today = date.today()
+        snacks["snack_tally"] = model_vote.get_tally(today.month, today.year)
+
+        snacks["snack_tally"] = {"Donuts":3, "Spam":2}
+        snacks["ranked_snacks"] = snacks["snack_tally"].keys()
+        snacks["optional_snacks"] = {s["name"]: s["lastPurchaseDate"] for s in optional_snacks}
+
+        print "get "
+
+        # Dynamically add fields (class attribute of custom form) using optional snacks from webservice
+        # Form fields correspond to snacks in optional_snacks
+        # todo: has dynamic flag
+        VoteSnackForm.add_dynamic_fields(optional_snacks)
+        # Have super constructor register fields
+        form = VoteSnackForm()
 
     # When user submitted vote, process the interaction.
     if request.method == "POST":
     #     for field in form:
     #         print field
-        c = Test1()
-        print "POST, "
-        print Test1.test_attr
+        print "POST "
+
         form = VoteSnackForm()
+        if form.validate():
+            votes = []
+            for field in form:
+                if "snack" in field.name and field.data == True:
+                    votes.append(field.label.text)
+
+            print votes
+            if len(votes) <= model_vote.get_allowed_votes():
+                model_vote.register_votes(votes)
+            else:
+                flash("You exceed the maximum allowed votes for this month.", "vote_error")
+                print "else"
+        else:
+            print form.errors
+
+        return redirect(url_for("index"))
 
     # If post:
     #   Get vote from request
@@ -101,7 +112,7 @@ def register():
     # Create form object to display, and use
     form = IndentifyUserForm()
 
-    # When user submmited email
+    # When user summited email
     if request.method == "POST":
         # If input is validate, set session, and redirect to vote page
         if form.validate():

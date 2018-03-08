@@ -18,12 +18,18 @@ class IndentifyUserForm(FlaskForm):
 
 class VoteSnackForm(FlaskForm):
 
+    _snacks = []
+
     @classmethod
     def add_dynamic_fields(cls, list_snacks):
+    # delete previously exisiting class attributes
+        if cls._snacks:
+            for s in cls._snacks:
+                delattr(cls, s)
+            cls._snacks[:] = []
+
     # set form fields as VoteSnackForm's class attribute
+    # example: cls.snack_0 = BooleanFields("pennuts")
         for i in range(len(list_snacks)):
-                setattr(cls, "snack_"+str(i), BooleanField(list_snacks[i]["name"]))
-
-
-class Test1:
-    test_attr = 1
+            cls._snacks.append("snack_"+str(i))
+            setattr(cls, "snack_"+str(i), BooleanField(list_snacks[i]["name"]))
