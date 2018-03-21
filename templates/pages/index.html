@@ -14,36 +14,39 @@
                     <h2 class="hdg hdg_3">Votes Remaining</h2>
                 </div>
                 <div class="voteBox-body">
-                    {% for item in [(3, "counter_green"), (2, "counter_yellow"), (1, "counter_red"), [0, "counter_red"]] %}
-                    {% if item[0] == allowed_vote %}
-                        <p class="counter {{ item[1] }}">{{ item[0] }}</p>
-                     {% endif %}
-                     {% endfor %}
+{% for item in [(3, "counter_green"), (2, "counter_yellow"), (1, "counter_red"), [0, "counter_red"]] %}
+    {% if item[0] == allowed_vote %}
+                <p class="" lass="counter {{ item[1] }}">{{ item[0] }}</p>
+    {% endif %}
+{% endfor %}
                 </div>
             </div>
         </div>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    {% if category == "vote_error" %}
-                    <div class="shelf shelf_2">
-                        <p class="error">Opps! You have already voted the total allowed times this month.<br />Come back next month to vote again!</p>
-                    </div>
-                    {% endif %}
-                {% endfor %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            {% if category == "error_vote" %}
+        <div class="shelf shelf_2">
+            <p class="error">Opps! You have already voted the total allowed times this month.<br />Come back next month to vote again!</p>
+        </div>
             {% endif %}
-            {% endwith %}
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+{% if error_ws %}
+    {{ error_ws }}
+{% else %}
         <div class="split">
             <div class="shelf shelf_2">
                 <div class="shelf">
                     <h2 class="hdg hdg_2 mix-hdg_centered ">Snacks Always Purchased</h2>
                 </div>
+
                 <ul class="list list_centered">
-                    <li>Pop Tarts</li>
-                    <li>Bagels</li>
-                    <li>Ramen Noodles</li>
-                    <li>Cereal</li>
-                    <li>Trail Mix</li>
+    {% for s in always_purchased %}
+                    <li>{{ s["name"] }}</li>
+    {% endfor %}
                 </ul>
             </div>
         </div>
@@ -53,6 +56,9 @@
                     <h2 class="hdg hdg_2 mix-hdg_centered ">Snacks suggested this month</h2>
                 </div>
                 <div class="shelf shelf_5">
+    {% if error_no_suggestion %}
+        Please suggest some snacks!
+    {% else %}
                     <form method="POST" action="{{ url_for("index") }}" class="form">
                         <table class="table">
                             <thead>
@@ -64,35 +70,41 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for field in form %}
-                                {% if field.type == "BooleanField" %}
+        {% for field in form %}
+            {% if field.type == "BooleanField" %}
                                 <tr>
-                                    <td>{{ field.label }} {{ field.label.text in ranked_snacks }}</td>
                                     <td>
-                                    {% if field.label.text in ranked_snacks %}
-                                        {{ snack_tally[field.label.text] }}
-                                    {% else %}
-                                    0
-                                    {% endif %}
+                                        {{ field.label }} {{ field.label.text in ranked_snacks }}
+                                    </td>
+                                    <td>
+                                        {% if field.label.text in ranked_snacks.keys() %}
+                                            {{ ranked_snacks[field.label.text] }}
+                                        {% else %}
+                                        0
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <button class="btn btn_clear"><i class="icon-check icon-check_voted"></i>
                                         </button>
                                         {{ field() }}
                                     </td>
-                                    <td>{{ optional_snacks[field.label.text] }}</td>
+                                    <td>
+                                        {{ optional_snacks_date[field.label.text] }}
+                                    </td>
                                 </tr>
-                                {% elif field.type == "CSRFTokenField" %}
-                                    {{ field() }}
-                                {% endif %}
-                                {% endfor %}
+            {% elif field.type == "CSRFTokenField" %}
+                {{ field() }}
+            {% endif %}
+        {% endfor %}
                             </tbody>
                         </table>
                         <input type="submit" value="Vote">
                     </form>
+    {% endif %}
                 </div>
             </div>
         </div>
+{% endif %}
     </div>
     <!-- /content -->
 </div>

@@ -18,15 +18,10 @@
                         <div class="shelf shelf_2">
                             <div class="shelf">
                                 <label for="snackOptions">
-                                    <h2 class="hdg hdg_2">Select a snack from the list</h2>
+                                    <h2 class="hdg hdg_2">{{ form_suggestion.snack_options.label.text }}</h2>
                                 </label>
                             </div>
-                            <select name="snackOptions" id="snackOptions">
-                                <option value="snack1">snack suggestion 1</option>
-                                <option value="snack2">snack suggestion 2</option>
-                                <option value="snack3">snack suggestion 3</option>
-                                <option value="snack4">snack suggestion 4</option>
-                            </select>
+                            {{ form_suggestion.snack_options }}
                         </div>
                     </fieldset>
                     <div class="shelf shelf_5">
@@ -39,11 +34,11 @@
                             </label>
                         </div>
                         <div class="shelf">
-                            <input type="text" id="suggestionInput" placeholder="Snack Suggestion" />
+                            {{ form_suggestion.suggestion_input(placeholder="Snack Suggestion") }}
                         </div>
                         <div class="shelf">
-                            <label for="suggestionLocation" class="isHidden">Location</label>
-                            <input type="text" id="suggestionLocation" placeholder="Location" class="" />
+                            {{ form_suggestion.suggestion_location.label(_class="isHidden") }}
+                            {{ form_suggestion.suggestion_location(placeholder="Location") }}
                         </div>
                     </fieldset>
                     <input type="submit" value="Suggest this Snack!" class="btn">

@@ -2,7 +2,8 @@ import sqlite3
 
 class Database:
 
-	# idea taken from https://gist.github.com/goldsborough/c973d934f620e16678bf
+	# Idea taken from https://gist.github.com/goldsborough/c973d934f620e16678bf
+	# See above link for documentation
 
 	def __init__(self, name=None):
 

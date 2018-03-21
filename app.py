@@ -1,11 +1,11 @@
+from datetime import date
+
 from flask import Flask, render_template, request, session, redirect, url_for, flash
 
 from config import config
 import webservice_client
 import model
 from forms import *
-
-from datetime import date
 
 
 # Default port is 5000.
@@ -23,46 +23,59 @@ def index():
     if "email" not in session:
         return redirect(url_for("register"))
 
-    # Initialize model for this user
-    snacks = {}
     print session["email"]
+
+    # Initialize container for keyword args to be passed to the view
+    snacks = {}
+    # Initialize model for this user
     model_vote = model.Votes(session["email"])
     # The allowed vote count left for user is need for both GET and POST
     snacks["allowed_vote"] = model_vote.get_allowed_votes()
 
     # When user request to view the page, get data to display.
     if request.method == "GET":
+        resp = "resp"
         # resp = webservice_client.get_snacks_from_web_service()
-        # if resp:
+        if resp:
         #     always_purchased, optional_snacks = webservice_client.separate_optional_snacks(resp)
+
+            optional_snacks = []
+            if len(optional_snacks) == 0:
+                snacks["error_no_suggestion"] = "Please suggest some snacks!"
+
+            # Initialize information to be displayed in template
+            # optional_snacks = [
+            #     {"id": 2000, "lastPurchaseDate": "12/1/2014", "name": "Donuts", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
+            #     {"id": 2001, "lastPurchaseDate": "12/1/2014", "name": "Spam", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
+            #     {"id": 2002, "lastPurchaseDate": "12/1/2014", "name": "Buckets of M&M's", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
+            #     {"id": 2002, "lastPurchaseDate": "10/1/2014", "name": "Pistachios", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
+            # ]
+    # Use optional snacks from webservice to create vote form
+            snacks["optional_snacks_date"] = {s["name"]: s["lastPurchaseDate"] for s in optional_snacks}
+    # Dynamically add fields (VoteSnackForm's class attribute) corresponding to each snack
+            VoteSnackForm.add_dynamic_fields(optional_snacks)
+            form = VoteSnackForm()
+
+    # Get this month's suggestion vote
+            today = date.today()
+            snacks["ranked_snacks"] = model_vote.get_tally(year=today.year, month=today.month)
+
+            print "get "
+
+            always_purchased = [
+                {"id": 2005, "lastPurchaseDate": "12/1/2014", "name": "Pop Tarts", "optional": False, "purchaseCount": 1, "purchaseLocations": ""},
+                {"id": 2006, "lastPurchaseDate": "12/1/2014", "name": "Bagels", "optional": False, "purchaseCount": 1, "purchaseLocations": ""},
+                {"id": 2007, "lastPurchaseDate": "12/1/2014", "name": "Ramen Noodles", "optional": False, "purchaseCount": 1, "purchaseLocations": ""},
+                {"id": 2008, "lastPurchaseDate": "10/1/2014", "name": "Cereal", "optional": False, "purchaseCount": 1, "purchaseLocations": ""},
+                {"id": 2009, "lastPurchaseDate": "10/1/2014", "name": "Trail Mix", "optional": False, "purchaseCount": 1, "purchaseLocations": ""},
+            ]
+    # Set always purchased snacks to be passed to view
+            snacks["always_purchased"] = always_purchased
+
+
     # When web service is down, set error.
-        # else:
-        #     snacks["error":"Sorry, we can't get snack information from OCD right now." ]
-        #     always_purchased, optional_snacks = ([],[])
-
-        # Initialize information to be displayed in template
-        optional_snacks = [
-            {"id": 2000, "lastPurchaseDate": "12/1/2014", "name": "Donuts", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
-            {"id": 2001, "lastPurchaseDate": "12/1/2014", "name": "Spam", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
-            {"id": 2002, "lastPurchaseDate": "12/1/2014", "name": "Buckets of M&M's", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
-            {"id": 2002, "lastPurchaseDate": "10/1/2014", "name": "Pistachios", "optional": True, "purchaseCount": 1, "purchaseLocations": ""},
-        ]
-
-        today = date.today()
-        snacks["snack_tally"] = model_vote.get_tally(today.month, today.year)
-
-        snacks["snack_tally"] = {"Donuts":3, "Spam":2}
-        snacks["ranked_snacks"] = snacks["snack_tally"].keys()
-        snacks["optional_snacks"] = {s["name"]: s["lastPurchaseDate"] for s in optional_snacks}
-
-        print "get "
-
-        # Dynamically add fields (class attribute of custom form) using optional snacks from webservice
-        # Form fields correspond to snacks in optional_snacks
-        # todo: has dynamic flag
-        VoteSnackForm.add_dynamic_fields(optional_snacks)
-        # Have super constructor register fields
-        form = VoteSnackForm()
+        else:
+            snacks["error_ws"] = "Sorry, we can't get snack information from OCD right now."
 
     # When user submitted vote, process the interaction.
     if request.method == "POST":
@@ -78,14 +91,15 @@ def index():
                     votes.append(field.label.text)
 
             print votes
-            if len(votes) <= model_vote.get_allowed_votes():
+            if len(votes) <= snacks["allowed_vote"]:
                 model_vote.register_votes(votes)
             else:
-                flash("You exceed the maximum allowed votes for this month.", "vote_error")
+                flash("You exceed the maximum allowed votes for this month.", "error_vote")
                 print "else"
         else:
             print form.errors
 
+    # POST will always redirect
         return redirect(url_for("index"))
 
     # If post:
@@ -100,9 +114,53 @@ def index():
     return render_template("pages/index.html", form=form, **snacks)
 
 
-@app.route("/suggestions")
+@app.route("/suggestions", methods=["GET","POST"])
 def suggestions():
-    return render_template("pages/suggestions.html")
+    # Make sure any user who can see the pages have provided their nerdery email.
+    if "email" not in session:
+        return redirect(url_for("register"))
+
+    snacks = {}
+    model_vote = model.Votes(session["email"])
+
+    # Get suggesion list from api
+    if request.method == "GET":
+
+        resp = webservice_client.get_snacks_from_web_service()
+        if resp:
+            always_purchased, optional_snacks = webservice_client.separate_optional_snacks(resp)
+    # Prepare suggestion form for the view
+            form_suggestion = SuggestionDropdown()
+            form_suggestion.snack_options.choices = [("snack_" + str(i), s["name"]) for i, s in enumerate(optional_snacks)]
+            snacks["form_suggestion"] = form_suggestion
+
+    # If already voted this month, set error message
+            if date.today().strftime("%Y-%m") == model_vote.get_last_suggest_date():
+                snacks["error_suggestion"] = (
+                    "You have attempted to add more than the allowed number of suggestions per month!",
+                    "There is a total of one allowed suggestion per month.")
+
+    # If no web service, set error message
+        else:
+            snacks["error_ws"] = "Sorry, we can't get snack information from OCD right now."
+
+    # Else:
+    #     If post:
+    #         Validate input
+    #         (more than one, only one from list, no data?)
+    #         If not valid:
+    #             Set error
+    #         Else:
+    #             Make request to remote api
+    #             Get response
+    #             If resp.status_code= 200:
+    #                 Put timestamp in session
+    #             If resp.status_code = 409:
+    #                 Set error
+
+    # Display with error, message
+
+    return render_template("pages/suggestions.html", **snacks)
 
 @app.route("/register", methods=["GET","POST"])
 def register():
