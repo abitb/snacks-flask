@@ -1,4 +1,4 @@
-## Nedery NAT in Python Flask
+## Nerdery NAT in Python Flask
 
 ### Database:
 tb_votes:
@@ -30,7 +30,12 @@ Then set up development database:
 ```sh
 python model.py
 ```
-Set up development variables in terminal (I use windows):
+Provide API key in config.py
+```sh
+class Config:
+	API_KEY = "Please provide API_KEY" <---here
+```
+Set up development variables in terminal (I use windows, use export in linux):
 ```sh
 set FLASK_APP=app.py
 ```

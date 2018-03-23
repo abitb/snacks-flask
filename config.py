@@ -4,7 +4,7 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-	API_KEY = "a1bacf53-c847-4b5d-81fa-822b8138ecda"
+	API_KEY = "Please provide API_KEY"
 
 class DevelopmentConfig(Config):
 	DATABASE_URI = os.path.join(basedir, "snacks.db")

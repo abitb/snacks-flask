@@ -11,10 +11,10 @@ from forms import *
 # Default port is 5000.
 app = Flask(__name__)
 # Take configuration from config.py.
-app.config.from_object(config['development'])
+app.config.from_object(config["development"])
 # Set sqlite database location
-model.Models.DB_FILE = config['development'].DATABASE_URI
-webservice_client.APIKEY = config['development'].API_KEY
+model.Models.DB_FILE = app.config["DATABASE_URI"]
+webservice_client.APIKEY = app.config["API_KEY"]
 
 
 @app.route("/", methods=["GET","POST"])
