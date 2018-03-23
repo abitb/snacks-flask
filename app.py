@@ -79,17 +79,18 @@ def index():
                 if "snack" in field.name and field.data == True:
                     votes.append(field.label.text)
 
+    # Success: pass all validations and record the votes
             if len(votes) <= allowed_vote:
                 model_vote.register_votes(votes)
+    # Error1:
             else:
                 flash("You exceed the maximum allowed votes for this month.", "error_vote")
-    # Not doing anything to database if form input is not valid
+    # Error2: Form input is not valid, not doing anything to database
         else:
             print form.errors
 
     # POST will always redirect
         return redirect(url_for("index"))
-
 
 
 @app.route("/suggestions", methods=["GET","POST"])
@@ -140,12 +141,6 @@ def suggestions():
         dropdown_input = form_suggestion.snack_options.data
         text_suggestion = form_suggestion.suggestion_input.data
         text_location = form_suggestion.suggestion_location.data
-        print "dropdown_input ",
-        print dropdown_input
-        print "text_suggestion ",
-        print text_suggestion
-        print "text_location ",
-        print text_location
 
     # Error0 : already suggested, don't process form
         if today.strftime("%Y-%m") == model_vote.get_last_suggest_date():
@@ -206,9 +201,11 @@ def register():
 
     return render_template("pages/register.html", form=form)
 
+
 @app.route("/servicedown")
 def no_ws():
     return render_template("pages/servicedown.html")
+
 
 @app.route("/logout")
 def log_out():
