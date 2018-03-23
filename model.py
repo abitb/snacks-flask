@@ -14,7 +14,8 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS tb_suggestion (
             suggestion_id   INTEGER PRIMARY KEY,
             suggestion_date TEXT,
-            user_email      TEXT
+            user_email      TEXT,
+            suggested_snack TEXT
         );'''
 
     with Database(Models.DB_FILE) as db:
@@ -91,6 +92,30 @@ class Votes(Models):
         else:
             return 0
 
+    def get_suggestion(self, year, month):
+        """
+        Get a list of snacks suggested for a month
+        :param year: integer year eg. 2018
+        :param month: integer month eg. 2
+        :returns: list of snacks [name,..] or []
+        """
+        query_string = '''
+            SELECT DISTINCT(suggested_snack)
+            FROM tb_suggestion
+            WHERE strftime('%Y-%m', suggestion_date) = :month
+        '''
+        # year-mm format
+        suggest_month = "{}-{:02d}".format(year, month)
+
+        with Database(Models.DB_FILE) as db:
+            db.cursor.execute(query_string, {"month": suggest_month})
+            rows = db.cursor.fetchall()
+        if rows:
+            return [s[0] for s in rows]
+        else:
+            return rows
+
+
     def get_last_suggest_date(self):
         """
         Get the last date a user made a suggestion to web service
@@ -114,20 +139,18 @@ class Votes(Models):
             return None
 
 
-    def set_last_suggest_date(self):
+    def suggest(self, snack):
         """
-        Record the last date a user made a suggestion to web service
+        Suggest a snack to be voted on, and record the date of suggestion
+        :param snack: string snack name
         """
-        query_string = "INSERT INTO tb_suggestion(suggestion_date, user_email) VALUES(?,?,?)"
+        query_string = "INSERT INTO tb_suggestion(suggestion_date, user_email, suggested_snack) VALUES(?,?,?)"
+
+        # Dates saved are in year-mm-dd format
+        suggest_date = date.today().strftime("%Y-%m-%d")
 
         with Database(Models.DB_FILE) as db:
-            db.cursor.execute(query_string, {"email": self.user_email})
-            row = db.cursor.fetchone()
-
-        if row:
-            return row[0]
-        else:
-            return None
+            db.cursor.execute(query_string, (suggest_date, self.user_email, snack))
 
 
 if __name__ == "__main__":

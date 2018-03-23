@@ -6,22 +6,30 @@
             <h2 class="hdg hdg_1">Suggestions</h1>
         </div>
         <div class="shelf shelf_2">
-            <div class="error isHidden">You have attempted to add more than the allowed number of suggestions per month!
-                <br />There is a total of one allowed suggestion per month.</div>
-            <div class="error isHidden">You have attempted to add a suggestion that already exists!</div>
-            <div class="error isHidden">You have not completed information requested.</div>
+{# error message #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="error">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+{% if error_suggestion %}
+            <div class="error">There is a total of one allowed suggestion per month.</div>
+{% endif %}
         </div>
         <div class="content-centered">
             <div class="shelf shelf_2">
-                <form method="" action="" class="form" novalidate>
+                <form method="POST" action="{{ url_for("suggestions") }}" class="form" novalidate>
+                    {{ form.csrf_token }}
                     <fieldset class="shelf shelf_2">
                         <div class="shelf shelf_2">
                             <div class="shelf">
                                 <label for="snackOptions">
-                                    <h2 class="hdg hdg_2">{{ form_suggestion.snack_options.label.text }}</h2>
+                                    <h2 class="hdg hdg_2">{{ form.snack_options.label.text }}</h2>
                                 </label>
                             </div>
-                            {{ form_suggestion.snack_options }}
+                            {{ form.snack_options }}
                         </div>
                     </fieldset>
                     <div class="shelf shelf_5">
@@ -34,11 +42,11 @@
                             </label>
                         </div>
                         <div class="shelf">
-                            {{ form_suggestion.suggestion_input(placeholder="Snack Suggestion") }}
+                            {{ form.suggestion_input(placeholder="Snack Suggestion") }}
                         </div>
                         <div class="shelf">
-                            {{ form_suggestion.suggestion_location.label(_class="isHidden") }}
-                            {{ form_suggestion.suggestion_location(placeholder="Location") }}
+                            {{ form.suggestion_location.label(_class="isHidden") }}
+                            {{ form.suggestion_location(placeholder="Location") }}
                         </div>
                     </fieldset>
                     <input type="submit" value="Suggest this Snack!" class="btn">
