@@ -1,5 +1,5 @@
 from datetime import date
-from DBConnection import Database
+from dbConnection import Database
 
 
 def create_tables():
